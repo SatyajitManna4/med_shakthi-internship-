@@ -3,13 +3,12 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
-import 'package:med_shakthi/src/features/checkout/presentation/screens/PaymentMethodScreen.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'AddressModel.dart';
 import 'AddressStore.dart';
-
+import 'payment.dart';
 
 class AddressSelectScreen extends StatefulWidget {
   const AddressSelectScreen({super.key});

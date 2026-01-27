@@ -248,6 +248,8 @@ class _BottomBar extends StatelessWidget {
           width: double.infinity,
           child: ElevatedButton(
             onPressed: () {
+              print("Product ID: ${product.id}");
+
               context.read<CartData>().addItem(
                 CartItem(
                   id: product.id,

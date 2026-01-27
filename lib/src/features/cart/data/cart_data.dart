@@ -173,4 +173,9 @@ class CartData extends ChangeNotifier {
           .eq('user_id', user.id);
     }
   }
+
+  void clearCart() {
+    items.clear();
+    notifyListeners();
+  }
 }

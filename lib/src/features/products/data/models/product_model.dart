@@ -1,5 +1,5 @@
 class Product {
-  final String id;
+  final String id; //  uuid string
   final String name;
   final String category;
   final double price;
@@ -15,22 +15,27 @@ class Product {
     required this.image,
   });
 
-  // --- ADDED THIS METHOD ---
-  factory Product.fromJson(Map<String, dynamic> json) {
+  // Supabase Map -> Product
+  factory Product.fromMap(Map<String, dynamic> map) {
     return Product(
-      id: json['id']?.toString() ?? '',
-      name: json['name'] ?? '',
-      category: json['category'] ?? 'General',
-      // FIX: Handle both String ("200.00") and Number (200.00) formats
-      price: (json['price'] is num)
-          ? (json['price'] as num).toDouble()
-          : double.tryParse(json['price']?.toString() ?? '0') ?? 0.0,
-      // Default rating to 0.0 if null or missing
-      rating: (json['rating'] is num)
-          ? (json['rating'] as num).toDouble()
-          : double.tryParse(json['rating']?.toString() ?? '0') ?? 0.0,
-      // Map 'image_url' from database to 'image' in app
-      image: json['image_url'] ?? '',
+      id: map['id'].toString(), //  UUID safe
+      name: map['name'] ?? '',
+      category: map['category'] ?? '',
+      price: (map['price'] as num?)?.toDouble() ?? 0.0,
+      rating: (map['rating'] as num?)?.toDouble() ?? 0.0,
+      image: map['image'] ?? '',
     );
+  }
+
+  //  Product -> Map (Insert/Update)
+  Map<String, dynamic> toMap() {
+    return {
+      "id": id,
+      "name": name,
+      "category": category,
+      "price": price,
+      "rating": rating,
+      "image": image,
+    };
   }
 }

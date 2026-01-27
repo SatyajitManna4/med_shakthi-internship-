@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:med_shakthi/src/features/cart/presentation/screens/cart_page.dart';
-import 'package:med_shakthi/src/features/orders/order_screen.dart';
-import 'package:med_shakthi/src/features/wishlist/data/wishlist_service.dart';
-import 'package:med_shakthi/src/features/wishlist/presentation/screens/wishlist_page.dart';
+import '../cart/presentation/screens/cart_page.dart';
+import '../orders/orders_page.dart';
 import '../profile/presentation/screens/supplier_category_page.dart';
 import '../profile/presentation/screens/supplier_profile_screen.dart';
+import '../profile/presentation/screens/supplier_wishlist_page.dart';
 
 class SupplierDashboard extends StatefulWidget {
   const SupplierDashboard({super.key});
@@ -23,8 +22,8 @@ class _SupplierDashboardState extends State<SupplierDashboard> {
   late final List<Widget> _pages = [
     const SupplierDashboardHome(),
     const SupplierCategoryPage(),
-    WishlistPage(wishlistService: WishlistService(userId: '')),
-    OrderScreen(),
+    // const SupplierWishlistPage(),
+    const OrdersPage(),
     const SupplierProfileScreen(),
   ];
 
@@ -42,28 +41,15 @@ class _SupplierDashboardState extends State<SupplierDashboard> {
         onTap: _onItemTapped,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home_filled), label: "Home"),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.grid_view),
-            label: "Category",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.favorite_border),
-            label: "Wishlist",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.receipt_long),
-            label: "Order",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            label: "Profile",
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.grid_view), label: "Category"),
+          BottomNavigationBarItem(icon: Icon(Icons.favorite_border), label: "Wishlist"),
+          BottomNavigationBarItem(icon: Icon(Icons.receipt_long), label: "Order"),
+          BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: "Profile"),
         ],
       ),
     );
   }
 }
-
 class SupplierDashboardHome extends StatelessWidget {
   const SupplierDashboardHome({super.key});
 
@@ -104,6 +90,7 @@ class SupplierDashboardHome extends StatelessWidget {
           child: const Icon(Icons.grid_view_rounded, color: Colors.black54),
         ),
         const SizedBox(width: 15),
+
         Expanded(
           child: Container(
             height: 50,
@@ -121,8 +108,10 @@ class SupplierDashboardHome extends StatelessWidget {
             ),
           ),
         ),
+
         const SizedBox(width: 15),
 
+        //  Clickable Cart Icon
         GestureDetector(
           onTap: () {
             Navigator.push(
@@ -146,13 +135,14 @@ class SupplierDashboardHome extends StatelessWidget {
                     style: TextStyle(fontSize: 10, color: Colors.white),
                   ),
                 ),
-              ),
+              )
             ],
           ),
         ),
       ],
     );
   }
+
 
   Widget _buildPromoBanner() {
     return Container(
@@ -172,10 +162,9 @@ class SupplierDashboardHome extends StatelessWidget {
           const Text(
             "Supplier Growth",
             style: TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
           const Text(
@@ -205,17 +194,14 @@ class SupplierDashboardHome extends StatelessWidget {
         Text(
           title,
           style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF2D2D2D),
-          ),
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF2D2D2D)),
         ),
         const Text(
           "See All",
           style: TextStyle(
-            color: Color(0xFF4CA6A8),
-            fontWeight: FontWeight.w600,
-          ),
+              color: Color(0xFF4CA6A8), fontWeight: FontWeight.w600),
         ),
       ],
     );
@@ -248,10 +234,8 @@ class SupplierDashboardHome extends StatelessWidget {
                     color: Colors.white,
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(
-                    cats[index]['icon'],
-                    color: const Color(0xFF4CA6A8),
-                  ),
+                  child: Icon(cats[index]['icon'],
+                      color: const Color(0xFF4CA6A8)),
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -302,10 +286,8 @@ class SupplierDashboardHome extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Text(sub, style: const TextStyle(color: Colors.grey, fontSize: 12)),
-          Text(
-            title,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-          ),
+          Text(title,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
           const Spacer(),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -313,13 +295,13 @@ class SupplierDashboardHome extends StatelessWidget {
               Text(
                 value,
                 style: const TextStyle(
-                  color: Color(0xFF4CA6A8),
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
+                    color: Color(0xFF4CA6A8),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding:
+                const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: const Color(0xFF4CA6A8).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(10),
@@ -327,10 +309,9 @@ class SupplierDashboardHome extends StatelessWidget {
                 child: Text(
                   badge,
                   style: const TextStyle(
-                    fontSize: 10,
-                    color: Color(0xFF4CA6A8),
-                    fontWeight: FontWeight.bold,
-                  ),
+                      fontSize: 10,
+                      color: Color(0xFF4CA6A8),
+                      fontWeight: FontWeight.bold),
                 ),
               ),
             ],
