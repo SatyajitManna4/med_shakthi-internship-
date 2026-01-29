@@ -4,10 +4,10 @@ import '../orders/orders_page.dart';
 import '../profile/presentation/screens/supplier_category_page.dart';
 import '../profile/presentation/screens/supplier_profile_screen.dart';
 import '../profile/presentation/screens/supplier_wishlist_page.dart';
+import '../supplier/inventory/ui/add_product_page.dart';  // ✅ ADDED FOR FAB
 
 class SupplierDashboard extends StatefulWidget {
   const SupplierDashboard({super.key});
-
   @override
   State<SupplierDashboard> createState() => _SupplierDashboardState();
 }
@@ -31,6 +31,18 @@ class _SupplierDashboardState extends State<SupplierDashboard> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF7F8FA),
+      // ✅ FAB ADDED - Shows on ALL tabs!
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const AddProductPage()),
+          );
+        },
+        backgroundColor: const Color(0xFF4CA6A8),
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: const Text("Add Product", style: TextStyle(color: Colors.white)),
+      ),
       body: SafeArea(child: _pages[_selectedIndex]),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
@@ -50,6 +62,7 @@ class _SupplierDashboardState extends State<SupplierDashboard> {
     );
   }
 }
+
 class SupplierDashboardHome extends StatelessWidget {
   const SupplierDashboardHome({super.key});
 
@@ -72,7 +85,7 @@ class SupplierDashboardHome extends StatelessWidget {
           _buildSectionHeader("Performance Stats"),
           const SizedBox(height: 15),
           _buildPerformanceGrid(),
-          const SizedBox(height: 20),
+          const SizedBox(height: 100),  // ✅ CHANGED: Space for FAB
         ],
       ),
     );
@@ -142,7 +155,6 @@ class SupplierDashboardHome extends StatelessWidget {
       ],
     );
   }
-
 
   Widget _buildPromoBanner() {
     return Container(
@@ -257,7 +269,7 @@ class SupplierDashboardHome extends StatelessWidget {
       crossAxisCount: 2,
       crossAxisSpacing: 15,
       mainAxisSpacing: 15,
-      childAspectRatio: 0.80, //  overflow fix
+      childAspectRatio: 0.80,
       children: [
         _statItem("Revenue", "₹ 4.5L", "Supplements", "+12%"),
         _statItem("Pending", "14 Units", "Medicine", "Alert"),

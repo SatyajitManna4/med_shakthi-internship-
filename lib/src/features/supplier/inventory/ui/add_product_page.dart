@@ -24,7 +24,45 @@ class _AddProductPageState extends State<AddProductPage> {
   final supplierIdController = TextEditingController(text: 'Loading...');
   final expiryController = TextEditingController();
 
-  String category = 'Medicine';
+  /// CATEGORY + SUBCATEGORY
+  String category = 'Medicines';
+  String subCategory = 'Tablets';
+
+  final Map<String, List<String>> categoryMap = {
+    'Medicines': [
+      'Tablets',
+      'Syrups',
+      'Capsules',
+      'Injections',
+      'Pain Relief',
+    ],
+    'Supplements': [
+      'Protein',
+      'Vitamins',
+      'Omega 3',
+      'Weight Gain',
+      'Immunity',
+    ],
+    'Personal care': [
+      'Skin care',
+      'Hair care',
+      'Body care',
+      'Cosmetics',
+    ],
+    'Baby care': [
+      'Diapers',
+      'Baby Food',
+      'Baby Lotion',
+      'Baby Soap',
+    ],
+    'Devices': [
+      'BP Monitor',
+      'Thermometer',
+      'Glucometer',
+      'Nebulizer',
+    ],
+  };
+
   File? imageFile;
   String? supplierCode;
   bool _isLoading = false;
@@ -43,10 +81,7 @@ class _AddProductPageState extends State<AddProductPage> {
       final data = await supabase
           .from('suppliers')
           .select('supplier_code')
-          .eq(
-            'user_id',
-            user.id,
-          ) // changed from 'id' to 'user_id' based on your schema
+          .eq('user_id', user.id)
           .maybeSingle();
 
       if (mounted) {
@@ -70,15 +105,14 @@ class _AddProductPageState extends State<AddProductPage> {
 
   Future<String?> uploadImage() async {
     if (imageFile == null) return null;
+
     final fileName = 'product_${DateTime.now().millisecondsSinceEpoch}.jpg';
     try {
       await supabase.storage
           .from('product-images')
-          .upload(
-            fileName,
-            imageFile!,
-            fileOptions: const FileOptions(upsert: true),
-          );
+          .upload(fileName, imageFile!,
+          fileOptions: const FileOptions(upsert: true));
+
       return supabase.storage.from('product-images').getPublicUrl(fileName);
     } catch (e) {
       debugPrint('Image upload error: $e');
@@ -103,6 +137,7 @@ class _AddProductPageState extends State<AddProductPage> {
         'unit_size': unitSizeController.text,
         'expiry_date': expiryController.text,
         'category': category,
+        'sub_category': subCategory,
         'supplier_code': supplierCode,
         'image_url': imageUrl,
       });
@@ -116,7 +151,6 @@ class _AddProductPageState extends State<AddProductPage> {
         ),
       );
 
-      // FIXED: Navigate back to Supplier Dashboard, not Pharmacy Home
       Navigator.pop(context);
     } catch (e) {
       debugPrint('Save product error: $e');
@@ -150,10 +184,8 @@ class _AddProductPageState extends State<AddProductPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF2F6F5),
       appBar: AppBar(
-        title: const Text(
-          'Add New Product',
-          style: TextStyle(color: Colors.black),
-        ),
+        title: const Text('Add New Product',
+            style: TextStyle(color: Colors.black)),
         backgroundColor: Colors.white,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black),
@@ -175,10 +207,12 @@ class _AddProductPageState extends State<AddProductPage> {
                   Expanded(child: _input("Unit Size", unitSizeController)),
                 ],
               ),
-              _input("Price", priceController, keyboard: TextInputType.number),
+              _input("Price", priceController,
+                  keyboard: TextInputType.number),
               _supplierIdField(),
               _expiryField(),
               _categoryDropdown(),
+              _subCategoryDropdown(),
               const SizedBox(height: 20),
               _submitButton(),
             ],
@@ -187,9 +221,6 @@ class _AddProductPageState extends State<AddProductPage> {
       ),
     );
   }
-
-  // ... (Keep your existing _input, _imagePicker, etc. widgets exactly as they were) ...
-  // I am including the critical ones below for context
 
   Widget _supplierIdField() {
     return Padding(
@@ -207,29 +238,48 @@ class _AddProductPageState extends State<AddProductPage> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
       child: TextFormField(
-        style: const TextStyle(color: Colors.black),
         controller: expiryController,
         readOnly: true,
         onTap: pickExpiryDate,
         validator: (v) => v!.isEmpty ? 'Select expiry date' : null,
-        decoration: _inputDecoration(
-          "Expiry Date",
-        ).copyWith(suffixIcon: const Icon(Icons.calendar_today)),
+        decoration: _inputDecoration("Expiry Date")
+            .copyWith(suffixIcon: const Icon(Icons.calendar_today)),
       ),
     );
   }
 
   Widget _categoryDropdown() {
-    return DropdownButtonFormField<String>(
-      initialValue: category,
-      items: [
-        'Medicine',
-        'Supplement',
-        'Surgical',
-        'Device',
-      ].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
-      onChanged: (v) => setState(() => category = v!),
-      decoration: _inputDecoration("Category"),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: DropdownButtonFormField<String>(
+        value: category,
+        decoration: _inputDecoration("Category"),
+        items: categoryMap.keys
+            .map((e) =>
+            DropdownMenuItem(value: e, child: Text(e)))
+            .toList(),
+        onChanged: (v) {
+          setState(() {
+            category = v!;
+            subCategory = categoryMap[category]!.first;
+          });
+        },
+      ),
+    );
+  }
+
+  Widget _subCategoryDropdown() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: DropdownButtonFormField<String>(
+        value: subCategory,
+        decoration: _inputDecoration("Sub Category"),
+        items: categoryMap[category]!
+            .map((e) =>
+            DropdownMenuItem(value: e, child: Text(e)))
+            .toList(),
+        onChanged: (v) => setState(() => subCategory = v!),
+      ),
     );
   }
 
@@ -239,20 +289,15 @@ class _AddProductPageState extends State<AddProductPage> {
       height: 54,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(
-            0xFF4CA6A8,
-          ), // Matches your Supplier Theme
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
-          ),
+          backgroundColor: const Color(0xFF4CA6A8),
+          shape:
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
         ),
         onPressed: _isLoading ? null : saveProduct,
         child: _isLoading
             ? const CircularProgressIndicator(color: Colors.white)
-            : const Text(
-                'Save Product',
-                style: TextStyle(color: Colors.white, fontSize: 16),
-              ),
+            : const Text('Save Product',
+            style: TextStyle(color: Colors.white, fontSize: 16)),
       ),
     );
   }
@@ -262,7 +307,6 @@ class _AddProductPageState extends State<AddProductPage> {
       onTap: pickImage,
       child: Container(
         height: 140,
-        width: double.infinity,
         margin: const EdgeInsets.only(bottom: 16),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -271,20 +315,18 @@ class _AddProductPageState extends State<AddProductPage> {
         ),
         child: imageFile == null
             ? const Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.add_a_photo, size: 40, color: Colors.grey),
-                  SizedBox(height: 8),
-                  Text(
-                    'Tap to add product image',
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                ],
-              )
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.add_a_photo, size: 40, color: Colors.grey),
+            SizedBox(height: 8),
+            Text('Tap to add product image',
+                style: TextStyle(color: Colors.grey)),
+          ],
+        )
             : ClipRRect(
-                borderRadius: BorderRadius.circular(20),
-                child: Image.file(imageFile!, fit: BoxFit.cover),
-              ),
+          borderRadius: BorderRadius.circular(20),
+          child: Image.file(imageFile!, fit: BoxFit.cover),
+        ),
       ),
     );
   }
@@ -301,11 +343,8 @@ class _AddProductPageState extends State<AddProductPage> {
     );
   }
 
-  Widget _input(
-    String label,
-    TextEditingController controller, {
-    TextInputType keyboard = TextInputType.text,
-  }) {
+  Widget _input(String label, TextEditingController controller,
+      {TextInputType keyboard = TextInputType.text}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
       child: TextFormField(
