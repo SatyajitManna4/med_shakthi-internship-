@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:med_shakthi/src/features/category/category_ui.dart';
 import 'package:med_shakthi/src/features/products/data/repositories/product_repository.dart';
 import 'package:med_shakthi/src/features/wishlist/presentation/screens/wishlist_page.dart';
+import 'package:med_shakthi/src/features/wishlist/data/wishlist_service.dart';
 import 'package:med_shakthi/src/features/cart/presentation/screens/cart_page.dart';
 import 'package:med_shakthi/src/features/orders/orders_page.dart';
 import 'package:med_shakthi/src/features/products/presentation/screens/product_page.dart';
@@ -27,6 +28,15 @@ class _PharmacyHomeScreenState extends State<PharmacyHomeScreen> {
   // State allows us to track dynamic changes, like the selected tab in the navigation bar.
   int _selectedIndex = 0;
   final ProductRepository _productRepo = ProductRepository();
+
+  @override
+  void initState() {
+    super.initState();
+    // Fetch user wishlist on init
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<WishlistService>().fetchWishlist();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

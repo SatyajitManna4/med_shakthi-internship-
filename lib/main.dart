@@ -28,9 +28,7 @@ Future<void> main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => CartData()),
         ChangeNotifierProvider(create: (_) => AddressStore()),
-        ChangeNotifierProvider(
-          create: (_) => WishlistService(userId: 'demo-user'),
-        ), // ADD THIS
+        ChangeNotifierProvider(create: (_) => WishlistService()), // ADD THIS
       ],
       child: const MyApp(),
     ),
