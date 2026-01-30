@@ -11,22 +11,18 @@ class CategoryPageNew extends StatelessWidget {
     Theme.of(context);
 
     return Scaffold(
-      backgroundColor: const Color(0xfff7f7f7), // keep current light theme
+      backgroundColor: const Color(0xfff7f9fc), // Modern light blue-grey
       appBar: AppBar(
         backgroundColor: Colors.white,
-        elevation: 0.5,
+        elevation: 0,
         centerTitle: true,
         automaticallyImplyLeading: false,
-        // leading: IconButton(
-        //   icon: const Icon(Icons.arrow_back, color: Colors.black87),
-        //   onPressed: () => Navigator.pop(context),
-        // ),
         title: const Text(
           'Shop by Category',
           style: TextStyle(
             color: Colors.black87,
-            fontWeight: FontWeight.w600,
-            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
           ),
         ),
       ),
@@ -42,20 +38,19 @@ class _CategoryBody extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       child: CustomScrollView(
+        physics: const BouncingScrollPhysics(),
         slivers: [
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: 16.0,
-                vertical: 8.0,
+                vertical: 12.0,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: const [
                   _SearchAndFilterBar(),
-                  SizedBox(height: 12),
-                  _ShortcutSection(),
-                  SizedBox(height: 16),
+                  SizedBox(height: 20),
                   _CategoryGroupTitle(title: 'Core Pharmacy'),
                 ],
               ),
@@ -63,27 +58,13 @@ class _CategoryBody extends StatelessWidget {
           ),
 
           // Core Pharmacy grid
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            sliver: SliverGrid(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                mainAxisSpacing: 10,
-                crossAxisSpacing: 10,
-                childAspectRatio: 0.9,
-              ),
-              delegate: SliverChildBuilderDelegate((context, index) {
-                final item = corePharmacyCategories[index];
-                return CategoryCard(item: item);
-              }, childCount: corePharmacyCategories.length),
-            ),
-          ),
+          _buildAnimatedGrid(corePharmacyCategories, 0),
 
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: 16.0,
-                vertical: 16.0,
+                vertical: 20.0,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -93,27 +74,16 @@ class _CategoryBody extends StatelessWidget {
           ),
 
           // Personal care grid
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            sliver: SliverGrid(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                mainAxisSpacing: 10,
-                crossAxisSpacing: 10,
-                childAspectRatio: 0.9,
-              ),
-              delegate: SliverChildBuilderDelegate((context, index) {
-                final item = personalCareCategories[index];
-                return CategoryCard(item: item);
-              }, childCount: personalCareCategories.length),
-            ),
+          _buildAnimatedGrid(
+            personalCareCategories,
+            corePharmacyCategories.length,
           ),
 
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: 16.0,
-                vertical: 16.0,
+                vertical: 20.0,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -123,22 +93,32 @@ class _CategoryBody extends StatelessWidget {
           ),
 
           // Devices grid
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(12, 0, 12, 24),
-            sliver: SliverGrid(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                mainAxisSpacing: 10,
-                crossAxisSpacing: 10,
-                childAspectRatio: 0.9,
-              ),
-              delegate: SliverChildBuilderDelegate((context, index) {
-                final item = deviceCategories[index];
-                return CategoryCard(item: item);
-              }, childCount: deviceCategories.length),
-            ),
+          _buildAnimatedGrid(
+            deviceCategories,
+            corePharmacyCategories.length + personalCareCategories.length,
           ),
+
+          const SliverPadding(padding: EdgeInsets.only(bottom: 24)),
         ],
+      ),
+    );
+  }
+
+  Widget _buildAnimatedGrid(List<CategoryItem> items, int startIndex) {
+    return SliverPadding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      sliver: SliverGrid(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3,
+          mainAxisSpacing: 16,
+          crossAxisSpacing: 16,
+          childAspectRatio: 0.85,
+        ),
+        delegate: SliverChildBuilderDelegate((context, index) {
+          final item = items[index];
+          final globalIndex = startIndex + index;
+          return CategoryCard(item: item, index: globalIndex);
+        }, childCount: items.length),
       ),
     );
   }
@@ -154,35 +134,35 @@ class _SearchAndFilterBar extends StatelessWidget {
       children: [
         Expanded(
           child: Container(
-            height: 42,
+            height: 48,
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.03),
-                  blurRadius: 8,
-                  offset: const Offset(0, 3),
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
                 ),
               ],
             ),
             child: const TextField(
               decoration: InputDecoration(
                 hintText: 'Search medicines, categories…',
-                hintStyle: TextStyle(fontSize: 13, color: Colors.grey),
-                prefixIcon: Icon(Icons.search, size: 20),
+                hintStyle: TextStyle(fontSize: 14, color: Colors.grey),
+                prefixIcon: Icon(Icons.search, size: 22, color: Colors.grey),
                 border: InputBorder.none,
                 contentPadding: EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 10,
+                  horizontal: 16,
+                  vertical: 12,
                 ),
               ),
             ),
           ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 12),
 
-        /// ✅ FILTER BUTTON (FIXED)
+        /// FILTER BUTTON
         GestureDetector(
           onTap: () async {
             final filters = await showModalBottomSheet<B2BProductFilter>(
@@ -199,75 +179,27 @@ class _SearchAndFilterBar extends StatelessWidget {
             }
           },
           child: Container(
-            height: 42,
-            width: 42,
+            height: 48,
+            width: 48,
             decoration: BoxDecoration(
-              color: const Color(0xff2b9c8f),
+              color: const Color(0xFF4C8077),
               borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF4C8077).withValues(alpha: 0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
             child: const Icon(
               Icons.tune_rounded,
               color: Colors.white,
-              size: 20,
+              size: 22,
             ),
           ),
         ),
       ],
-    );
-  }
-}
-
-/// Recently ordered + Popular chips row
-class _ShortcutSection extends StatelessWidget {
-  const _ShortcutSection();
-
-  @override
-  Widget build(BuildContext context) {
-    final shortcuts = [
-      'Recently ordered',
-      'Popular in your area',
-      'Best margins',
-    ];
-
-    return SizedBox(
-      height: 30,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: shortcuts.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 8),
-        itemBuilder: (context, index) {
-          return Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xffe0e0e0)),
-            ),
-            child: Row(
-              children: [
-                if (index == 0)
-                  const Icon(Icons.history, size: 14, color: Colors.teal),
-                if (index == 1)
-                  const Icon(
-                    Icons.local_fire_department,
-                    size: 14,
-                    color: Colors.orange,
-                  ),
-                if (index == 2)
-                  const Icon(Icons.trending_up, size: 14, color: Colors.green),
-                const SizedBox(width: 4),
-                Text(
-                  shortcuts[index],
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
     );
   }
 }
@@ -281,13 +213,17 @@ class _CategoryGroupTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       title,
-      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+      style: const TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.bold,
+        color: Colors.black87,
+        letterSpacing: 0.5,
+      ),
     );
   }
 }
 
 /// DATA MODEL
-
 class CategoryItem {
   final String title;
   final IconData icon;
@@ -304,7 +240,7 @@ class CategoryItem {
   });
 }
 
-// Example data: map these to your real categories & images.
+// Example data
 final List<CategoryItem> corePharmacyCategories = [
   CategoryItem(
     title: 'Medicines',
@@ -345,7 +281,7 @@ final List<CategoryItem> personalCareCategories = [
     badgeColor: Colors.green.shade600,
   ),
   CategoryItem(
-    title: 'Soaps & Bodywash',
+    title: 'Soaps',
     icon: Icons.clean_hands,
     skuCountText: '140+ SKUs',
     badgeText: 'Best margins',
@@ -363,7 +299,7 @@ final List<CategoryItem> deviceCategories = [
   ),
   CategoryItem(
     title: 'Oximeter',
-    icon: Icons.monitor_weight_outlined, // approximate
+    icon: Icons.monitor_weight_outlined,
     skuCountText: '15 SKUs',
     badgeText: 'Only few left',
     badgeColor: Colors.red.shade500,
@@ -382,7 +318,6 @@ final List<CategoryItem> deviceCategories = [
     badgeText: 'Available',
     badgeColor: Colors.green.shade600,
   ),
-
   CategoryItem(
     title: 'Surgical',
     icon: Icons.local_hospital,
@@ -393,98 +328,82 @@ final List<CategoryItem> deviceCategories = [
 ];
 
 /// CATEGORY CARD WIDGET
-
 class CategoryCard extends StatelessWidget {
   final CategoryItem item;
+  final int index;
 
-  const CategoryCard({super.key, required this.item});
+  const CategoryCard({super.key, required this.item, required this.index});
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(14),
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => CategoryProductsPage(categoryName: item.title),
-          ),
+    // Staggered Entry Animation
+    return TweenAnimationBuilder<double>(
+      duration: Duration(milliseconds: 400 + (index * 100)),
+      tween: Tween(begin: 0.0, end: 1.0),
+      curve: Curves.easeOutQuart,
+      builder: (context, value, child) {
+        return Transform.translate(
+          offset: Offset(0, 30 * (1 - value)),
+          child: Opacity(opacity: value, child: child),
         );
       },
-
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.03),
-              blurRadius: 6,
-              offset: const Offset(0, 3),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => CategoryProductsPage(categoryName: item.title),
             ),
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const SizedBox(height: 12),
-            Expanded(
-              child: Center(
-                child: Icon(
-                  item.icon,
-                  size: 40,
-                  color: item.badgeColor, // Use badge color for icon theme
+          );
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Icon Container
+              Container(
+                height: 60,
+                width: 60,
+                decoration: BoxDecoration(
+                  color: item.badgeColor.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(item.icon, size: 30, color: item.badgeColor),
+              ),
+              const SizedBox(height: 12),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: Text(
+                  item.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
                 ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 6.0,
-                vertical: 4.0,
+              const SizedBox(height: 4),
+              Text(
+                item.skuCountText,
+                style: const TextStyle(fontSize: 11, color: Colors.grey),
               ),
-              child: Column(
-                children: [
-                  Text(
-                    item.title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    item.skuCountText,
-                    style: const TextStyle(fontSize: 10, color: Colors.grey),
-                  ),
-                  const SizedBox(height: 4),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: item.badgeColor.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      item.badgeText,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 9,
-                        fontWeight: FontWeight.w500,
-                        color: item.badgeColor,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

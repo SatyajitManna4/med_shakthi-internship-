@@ -468,10 +468,10 @@ class _SupplierSignupPageState extends State<SupplierSignupPage> {
         width: double.infinity,
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: const Color(0xFF6AA39B).withOpacity(0.05),
+          color: const Color(0xFF6AA39B).withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: const Color(0xFF6AA39B).withOpacity(0.2),
+            color: const Color(0xFF6AA39B).withValues(alpha: 0.2),
             style: BorderStyle.solid,
           ),
         ),

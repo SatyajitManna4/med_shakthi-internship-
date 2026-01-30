@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:med_shakthi/src/features/dashboard/pharmacy_home_screen.dart';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SignupPage extends StatefulWidget {
@@ -12,7 +12,7 @@ class SignupPage extends StatefulWidget {
 class _SignupPageState extends State<SignupPage> {
   final _formKey = GlobalKey<FormState>();
   final SupabaseClient supabase = Supabase.instance.client;
-
+  static const String _countryCode = '+91';
 
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
@@ -21,6 +21,7 @@ class _SignupPageState extends State<SignupPage> {
 
   bool _obscurePassword = true;
   bool _acceptTerms = false;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -126,11 +127,19 @@ class _SignupPageState extends State<SignupPage> {
                   _label('Phone Number'),
                   _textField(
                     controller: _phoneController,
-                    hint: '+91 9876543210',
+                    hint: '9876543210',
+                    prefixText: '$_countryCode ',
                     keyboardType: TextInputType.phone,
-                    validator: (value) => value == null || value.isEmpty
-                        ? 'Enter phone number'
-                        : null,
+                    maxLength: 10,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Enter phone number';
+                      }
+                      if (value.length != 10) {
+                        return 'Enter valid 10-digit number';
+                      }
+                      return null;
+                    },
                   ),
 
                   const SizedBox(height: 20),
@@ -183,29 +192,31 @@ class _SignupPageState extends State<SignupPage> {
 
                   const SizedBox(height: 24),
 
-                  /// Sign Up Button
-                  SizedBox(
-                    width: double.infinity,
-                    height: 52,
-                    child: ElevatedButton(
-                      onPressed: _onSignupPressed,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF6AA39B),
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
+                  if (_isLoading)
+                    const Center(child: CircularProgressIndicator())
+                  else
+                    SizedBox(
+                      width: double.infinity,
+                      height: 52,
+                      child: ElevatedButton(
+                        onPressed: _onSignupPressed,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF6AA39B),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          elevation: 2,
                         ),
-                        elevation: 2,
-                      ),
-                      child: const Text(
-                        'Sign Up',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
+                        child: const Text(
+                          'Sign Up',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ),
-                  ),
 
                   const SizedBox(height: 30),
 
@@ -257,11 +268,27 @@ class _SignupPageState extends State<SignupPage> {
       return;
     }
 
+    if (!_acceptTerms) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please accept terms & conditions'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
     try {
+      final fullName = _nameController.text.trim();
+      final phone = '$_countryCode${_phoneController.text.trim()}';
+
       // 🔐 Step 1: Supabase Auth Signup
       final authResponse = await supabase.auth.signUp(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
+        data: {'full_name': fullName, 'phone': phone}, // Store metadata
       );
 
       final user = authResponse.user;
@@ -270,44 +297,61 @@ class _SignupPageState extends State<SignupPage> {
       }
 
       // 🧾 Step 2: Insert into users table
-      await supabase.from('users').insert({
+      // Use upsert to handle potential duplicate key errors (if trigger exists or retry)
+      await supabase.from('users').upsert({
         'id': user.id, // MUST match auth.users.id
-        'name': _nameController.text.trim(),
+        'name': fullName,
         'email': _emailController.text.trim(),
-        'phone': _phoneController.text.trim(),
+        'phone': phone,
+        // Only set created_at if it's a new record (optional handling, but simple upsert is fine)
         'created_at': DateTime.now().toIso8601String(),
-      });
+      }, onConflict: 'id'); // Explicitly handle conflict on 'id'
+
+      if (!mounted) return;
 
       // ✅ Success
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Signup successful!'),
-          backgroundColor: Colors.green,
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => AlertDialog(
+          title: const Text('Signup Successful'),
+          content: const Text(
+            'Your account has been created. Please login to continue.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Close dialog
+                Navigator.pop(context); // Go back to Login (if pushed)
+                // Fallback if not pushed (optional, or rely on pop)
+                // Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => LoginPage()));
+              },
+              child: const Text('Login Now'),
+            ),
+          ],
         ),
       );
-
-      // ➡️ Navigate
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const PharmacyHomeScreen()),
-      );
     } on AuthException catch (e) {
+      if (!mounted) return;
+      // Handle "User already registered" specifically if message contains it,
+      // though Supabase usually returns a clear message.
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(e.message),
           backgroundColor: Colors.redAccent,
+          behavior: SnackBarBehavior.floating, // Floating for better visibility
+          margin: const EdgeInsets.all(16),
         ),
       );
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: $e'),
-          backgroundColor: Colors.redAccent,
-        ),
+        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.redAccent),
       );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
-
 
   Widget _label(String text) {
     return Padding(
@@ -322,6 +366,8 @@ class _SignupPageState extends State<SignupPage> {
     TextInputType keyboardType = TextInputType.text,
     bool obscureText = false,
     Widget? suffixIcon,
+    String? prefixText,
+    int? maxLength,
     String? Function(String?)? validator,
   }) {
     return TextFormField(
@@ -329,9 +375,12 @@ class _SignupPageState extends State<SignupPage> {
       keyboardType: keyboardType,
       obscureText: obscureText,
       validator: validator,
+      maxLength: maxLength,
       decoration: InputDecoration(
         hintText: hint,
         suffixIcon: suffixIcon,
+        prefixText: prefixText,
+        counterText: '', // Hide default counter
         filled: true,
         fillColor: Colors.white,
         border: OutlineInputBorder(
