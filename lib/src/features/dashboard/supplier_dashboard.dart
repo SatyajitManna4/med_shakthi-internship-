@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../cart/presentation/screens/cart_page.dart';
 import '../orders/orders_page.dart';
 import '../profile/presentation/screens/chat_list_screen.dart';
@@ -6,10 +8,11 @@ import '../profile/presentation/screens/supplier_category_page.dart';
 import '../profile/presentation/screens/supplier_payout_page.dart';
 import '../profile/presentation/screens/supplier_profile_screen.dart';
 import '../profile/presentation/screens/supplier_wishlist_page.dart';
-import '../supplier/inventory/ui/add_product_page.dart'; // ✅ ADDED FOR FAB
+import '../supplier/inventory/ui/add_product_page.dart';
 
 class SupplierDashboard extends StatefulWidget {
   const SupplierDashboard({super.key});
+
   @override
   State<SupplierDashboard> createState() => _SupplierDashboardState();
 }
@@ -31,9 +34,10 @@ class _SupplierDashboardState extends State<SupplierDashboard> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F8FA),
-      //  FAB ADDED - Shows on ALL tabs!
+      backgroundColor: theme.scaffoldBackgroundColor,
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           Navigator.push(
@@ -43,7 +47,8 @@ class _SupplierDashboardState extends State<SupplierDashboard> {
         },
         backgroundColor: const Color(0xFF4CA6A8),
         icon: const Icon(Icons.add, color: Colors.white),
-        label: const Text("Add Product", style: TextStyle(color: Colors.white)),
+        label: const Text("Add Product",
+            style: TextStyle(color: Colors.white)),
       ),
       body: SafeArea(child: _pages[_selectedIndex]),
       bottomNavigationBar: BottomNavigationBar(
@@ -54,32 +59,30 @@ class _SupplierDashboardState extends State<SupplierDashboard> {
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home_filled), label: "Home"),
           BottomNavigationBarItem(
-            icon: Icon(Icons.grid_view),
-            label: "Category",
-          ),
+              icon: Icon(Icons.home_filled), label: "Home"),
           BottomNavigationBarItem(
-            icon: Icon(Icons.favorite_border),
-            label: "Wishlist",
-          ),
+              icon: Icon(Icons.grid_view), label: "Category"),
           BottomNavigationBarItem(
-            icon: Icon(Icons.receipt_long),
-            label: "Order",
-          ),
+              icon: Icon(Icons.favorite_border), label: "Wishlist"),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            label: "Profile",
-          ),
+              icon: Icon(Icons.receipt_long), label: "Order"),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.person_outline), label: "Profile"),
         ],
       ),
     );
   }
 }
 
-class SupplierDashboardHome extends StatelessWidget {
+class SupplierDashboardHome extends StatefulWidget {
   const SupplierDashboardHome({super.key});
 
+  @override
+  State<SupplierDashboardHome> createState() => _SupplierDashboardHomeState();
+}
+
+class _SupplierDashboardHomeState extends State<SupplierDashboardHome> {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -92,53 +95,36 @@ class SupplierDashboardHome extends StatelessWidget {
           const SizedBox(height: 20),
           _buildPromoBanner(),
           const SizedBox(height: 30),
+
           _buildSectionHeader("Categories"),
           const SizedBox(height: 15),
           _buildCategoryList(context),
+
           const SizedBox(height: 30),
-          _buildSectionHeader("Performance Stats"),
+          _buildSectionHeader("My Products"),
           const SizedBox(height: 15),
-          _buildPerformanceGrid(),
-          const SizedBox(height: 100), // ✅ CHANGED: Space for FAB
+          _buildSupplierProducts(),
+
+          const SizedBox(height: 100),
         ],
       ),
     );
   }
 
+  // ---------------- TOP BAR ----------------
   Widget _buildTopBar(BuildContext context) {
     return Row(
       children: [
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(15),
           ),
-          child: const Icon(Icons.grid_view_rounded, color: Colors.black54),
+          child: Icon(Icons.grid_view_rounded,
+              color: Theme.of(context).iconTheme.color),
         ),
-        const SizedBox(width: 15),
-
-        Expanded(
-          child: Container(
-            height: 50,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(25),
-            ),
-            child: const TextField(
-              decoration: InputDecoration(
-                prefixIcon: Icon(Icons.search, color: Colors.grey),
-                hintText: "Search analytics...",
-                border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(vertical: 15),
-              ),
-            ),
-          ),
-        ),
-
-        const SizedBox(width: 15),
-
-        //  Clickable Cart Icon
+        const Spacer(),
         GestureDetector(
           onTap: () {
             Navigator.push(
@@ -146,165 +132,101 @@ class SupplierDashboardHome extends StatelessWidget {
               MaterialPageRoute(builder: (_) => const CartPage()),
             );
           },
-          child: Stack(
-            children: const [
-              CircleAvatar(
-                backgroundColor: Colors.white,
-                child: Icon(Icons.shopping_cart_outlined, color: Colors.black),
-              ),
-              Positioned(
-                right: 0,
-                child: CircleAvatar(
-                  radius: 8,
-                  backgroundColor: Color(0xFF4CA6A8),
-                  child: Text(
-                    "3",
-                    style: TextStyle(fontSize: 10, color: Colors.white),
-                  ),
-                ),
-              ),
-            ],
+          child: CircleAvatar(
+            backgroundColor: Theme.of(context).cardColor,
+            child: Icon(Icons.shopping_cart_outlined,
+                color: Theme.of(context).iconTheme.color),
           ),
         ),
       ],
     );
   }
 
+  // ---------------- PROMO ----------------
   Widget _buildPromoBanner() {
     return Container(
-      width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(30),
         gradient: const LinearGradient(
           colors: [Color(0xFF63B4B7), Color(0xFF4CA6A8)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
         ),
       ),
-      child: Column(
+      child: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             "Supplier Growth",
             style: TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 8),
-          const Text(
-            "Monthly payout is ready",
+          SizedBox(height: 8),
+          Text(
+            "Manage your products easily",
             style: TextStyle(color: Colors.white70),
-          ),
-          const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: () {},
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white,
-              foregroundColor: const Color(0xFF4CA6A8),
-              shape: const StadiumBorder(),
-              elevation: 0,
-            ),
-            child: const Text("View Report"),
           ),
         ],
       ),
     );
   }
 
+  // ---------------- SECTION HEADER ----------------
   Widget _buildSectionHeader(String title) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF2D2D2D),
-          ),
-        ),
-        const Text(
-          "See All",
-          style: TextStyle(
-            color: Color(0xFF4CA6A8),
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ],
+    return Text(
+      title,
+      style: const TextStyle(
+        fontSize: 20,
+        fontWeight: FontWeight.bold,
+        color: Color(0xFF2D2D2D),
+      ),
     );
   }
 
+  // ---------------- CATEGORY LIST ----------------
   Widget _buildCategoryList(BuildContext context) {
-    final List<Map<String, dynamic>> cats = [
-      {"icon": Icons.inventory_2, "label": "Orders"},
-      {"icon": Icons.analytics, "label": "Sales"},
+    final cats = [
+      {"icon": Icons.receipt_long, "label": "Orders"},
       {"icon": Icons.people, "label": "Clients"},
       {"icon": Icons.account_balance_wallet, "label": "Payouts"},
     ];
 
     return SizedBox(
-      height: 95,
+      height: 90,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: cats.length,
         separatorBuilder: (_, __) => const SizedBox(width: 25),
         itemBuilder: (context, index) {
-          final label = cats[index]['label'];
-
           return InkWell(
-            borderRadius: BorderRadius.circular(50),
             onTap: () {
-              //  NAVIGATION LOGIC
-              if (label == "Orders") {
+              if (cats[index]['label'] == "Orders") {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const OrdersPage()));
+              } else if (cats[index]['label'] == "Clients") {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const ChatListScreen()));
+              } else {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const OrdersPage()),
-                );
-              }
-              else if (label == "Clients") {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const ChatListScreen()),
-                );
-              }
-              else if (label == "Payouts") {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const SupplierPayoutPage()),
-                );
-              }
-              else if (label == "Sales") {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Sales page coming soon")),
+                  MaterialPageRoute(
+                      builder: (_) => const SupplierPayoutPage()),
                 );
               }
             },
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(18),
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                  ),
+                CircleAvatar(
+                  radius: 28,
+                  backgroundColor: Theme.of(context).cardColor,
                   child: Icon(
-                    cats[index]['icon'],
+                    cats[index]['icon'] as IconData,
                     color: const Color(0xFF4CA6A8),
                   ),
                 ),
                 const SizedBox(height: 8),
-                Text(
-                  label,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: Colors.black54,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
+                Text(cats[index]['label'] as String),
               ],
             ),
           );
@@ -313,78 +235,201 @@ class SupplierDashboardHome extends StatelessWidget {
     );
   }
 
+  // ---------------- ALL PRODUCTS FROM SUPABASE ----------------
+  Widget _buildSupplierProducts() {
+    final supabase = Supabase.instance.client;
 
-  Widget _buildPerformanceGrid() {
-    return GridView.count(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: 2,
-      crossAxisSpacing: 15,
-      mainAxisSpacing: 15,
-      childAspectRatio: 0.80,
-      children: [
-        _statItem("Revenue", "₹ 4.5L", "Supplements", "+12%"),
-        _statItem("Pending", "14 Units", "Medicine", "Alert"),
-      ],
-    );
-  }
+    return FutureBuilder<List<dynamic>>(
+      future: supabase
+          .from('products')
+          .select()
+          .order('created_at', ascending: false),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-  Widget _statItem(String title, String value, String sub, String badge) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            height: 55,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: const Color(0xFFF7F8FA),
-              borderRadius: BorderRadius.circular(15),
-            ),
-            child: const Icon(Icons.bar_chart, color: Colors.grey, size: 40),
-          ),
-          const SizedBox(height: 10),
-          Text(sub, style: const TextStyle(color: Colors.grey, fontSize: 12)),
-          Text(
-            title,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-          ),
-          const Spacer(),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        if (snapshot.hasError) {
+          return Column(
             children: [
-              Text(
-                value,
-                style: const TextStyle(
-                  color: Color(0xFF4CA6A8),
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF4CA6A8).withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  badge,
-                  style: const TextStyle(
-                    fontSize: 10,
-                    color: Color(0xFF4CA6A8),
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+              const Text("Failed to load products", style: TextStyle(color: Colors.red)),
+              const SizedBox(height: 8),
+              Text("Error: ${snapshot.error}", style: const TextStyle(color: Colors.grey, fontSize: 12)),
+              const SizedBox(height: 8),
+              ElevatedButton(
+                onPressed: () => setState(() {}),
+                child: const Text("Retry"),
               ),
             ],
-          ),
-        ],
-      ),
+          );
+        }
+
+        final products = snapshot.data ?? [];
+        if (products.isEmpty) {
+          return const Center(
+            child: Column(
+              children: [
+                Icon(Icons.inventory_2_outlined, size: 48, color: Colors.grey),
+                SizedBox(height: 8),
+                Text(
+                  "No products found",
+                  style: TextStyle(color: Colors.grey),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Total Products: ${products.length}",
+              style: const TextStyle(
+                fontSize: 14,
+                color: Colors.grey,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 12),
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: products.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 12),
+              itemBuilder: (context, index) {
+                final p = products[index];
+
+                final imageUrl = p['image_url'];
+                final productName = p['name'] ?? "Unnamed Product";
+                final category = p['category'] ?? "No Category";
+                final price = p['price']?.toString() ?? "0.00";
+                final supplierCode = p['supplier_code'] ?? "--";
+
+                return Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).cardColor,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      // Product Image
+                      Container(
+                        height: 60,
+                        width: 60,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade100,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: imageUrl != null && imageUrl.toString().isNotEmpty
+                              ? Image.network(
+                                  imageUrl,
+                                  height: 60,
+                                  width: 60,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      const Icon(Icons.image, color: Colors.grey),
+                                )
+                              : const Icon(Icons.image, color: Colors.grey),
+                        ),
+                      ),
+                      const SizedBox(width: 15),
+                      
+                      // Product Details
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              productName,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              category,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              "Supplier: $supplierCode",
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      
+                      // Price and Actions
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            "₹$price",
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF4CA6A8),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                onPressed: () {
+                                  // TODO: Edit product functionality
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text("Edit product - TODO")),
+                                  );
+                                },
+                                icon: const Icon(Icons.edit, size: 18, color: Colors.blue),
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                              ),
+                              const SizedBox(width: 8),
+                              IconButton(
+                                onPressed: () {
+                                  // TODO: Delete product functionality
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text("Delete product - TODO")),
+                                  );
+                                },
+                                icon: const Icon(Icons.delete, size: 18, color: Colors.red),
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 }
